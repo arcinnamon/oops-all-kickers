@@ -1,0 +1,9 @@
+{
+  "events": [
+    { "id": "401", "date": "2025-10-26T17:00Z", "status": { "type": { "completed": true } } },
+    { "id": "402", "date": "2025-10-27T00:20Z", "status": { "type": { "completed": true } } },
+    { "id": "403", "date": "2025-10-26T17:00Z", "status": { "type": { "completed": false } } },
+    { "id": "404", "date": "2025-10-19T17:00Z", "status": { "type": { "completed": true } } },
+    { "id": 405, "date": "bad", "status": { "type": { "completed": true } } }
+  ]
+}
