@@ -1,0 +1,25 @@
+{
+  "boxscore": {
+    "players": [
+      {
+        "team": { "abbreviation": "KC", "displayName": "Kansas City Chiefs" },
+        "statistics": [
+          { "name": "passing", "labels": ["C/ATT"], "athletes": [] },
+          {
+            "name": "kicking",
+            "labels": ["FG", "PCT", "LONG", "XP", "PTS"],
+            "athletes": [
+              { "athlete": { "displayName": "Harrison Butker" }, "stats": ["3/4", "75.0", "52", "2/2", "11"] }
+            ]
+          }
+        ]
+      },
+      {
+        "team": { "abbreviation": "DEN", "displayName": "Denver Broncos" },
+        "statistics": [
+          { "name": "rushing", "labels": ["CAR"], "athletes": [] }
+        ]
+      }
+    ]
+  }
+}
