@@ -30,6 +30,39 @@ describe("getTopKickers", () => {
     expect(String((f.mock.calls[0] as unknown[])[0])).toContain("groups=80");
   });
 
+  it("requests the scoreboard one day at a time, never a date range", async () => {
+    const f = vi.fn((url: string) => ok(url.includes("scoreboard") ? { events: [] } : {}));
+    vi.stubGlobal("fetch", f);
+    await getTopKickers("nfl", week);
+    const dates = f.mock.calls
+      .map((c) => new URL(String((c as unknown[])[0])).searchParams.get("dates"))
+      .sort();
+    // Tue Oct 21 05:01Z to Tue Oct 28 04:59Z, padded a day each side.
+    expect(dates).toEqual([
+      "20251020",
+      "20251021",
+      "20251022",
+      "20251023",
+      "20251024",
+      "20251025",
+      "20251026",
+      "20251027",
+      "20251028",
+      "20251029",
+    ]);
+  });
+
+  it("reports unavailable when one scoreboard day fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        if (url.includes("dates=20251026")) return Promise.resolve(new Response("no", { status: 400 }));
+        return ok(url.includes("scoreboard") ? load("scoreboard.json") : load("summary.json"));
+      }),
+    );
+    expect(await getTopKickers("nfl", week)).toEqual({ status: "unavailable", rows: [] });
+  });
+
   it("reports no-games", async () => {
     vi.stubGlobal("fetch", vi.fn(() => ok({ events: [] })));
     expect(await getTopKickers("nfl", week)).toEqual({ status: "no-games", rows: [] });

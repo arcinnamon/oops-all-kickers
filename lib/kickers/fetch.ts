@@ -17,18 +17,35 @@ async function getJson(url: string): Promise<unknown> {
   return res.json();
 }
 
-export async function getTopKickers(league: League, week: Week): Promise<KickersResult> {
-  // Pad a day each side; parseScoreboard's kickoff filter is the authority.
-  const from = compact(new Date(week.start.getTime() - DAY));
-  const to = compact(new Date(week.end.getTime() + DAY));
-  const sport = league === "nfl" ? "nfl" : "college-football";
-  const params = new URLSearchParams({ dates: from + "-" + to, limit: "300" });
-  if (league === "fbs") params.set("groups", "80");
+/** UTC calendar days covering the week, padded a day each side. */
+export function scoreboardDays(week: Pick<Week, "start" | "end">): string[] {
+  const days: string[] = [];
+  const last = compact(new Date(week.end.getTime() + DAY));
+  for (let t = week.start.getTime() - DAY; ; t += DAY) {
+    const day = compact(new Date(t));
+    days.push(day);
+    if (day >= last) return days;
+  }
+}
 
+export async function getTopKickers(league: League, week: Week): Promise<KickersResult> {
+  const sport = league === "nfl" ? "nfl" : "college-football";
+
+  // ESPN rejects date ranges ("dates=A-B" returns 400), so ask one day at a time.
+  // parseScoreboard's kickoff filter is the authority on which games count.
   let games: ScoreboardGame[];
   try {
-    games = parseScoreboard(await getJson(BASE + "/" + sport + "/scoreboard?" + params), week);
+    const perDay = await Promise.all(
+      scoreboardDays(week).map(async (day) => {
+        const params = new URLSearchParams({ dates: day, limit: "300" });
+        if (league === "fbs") params.set("groups", "80");
+        return parseScoreboard(await getJson(BASE + "/" + sport + "/scoreboard?" + params), week);
+      }),
+    );
+    const byId = new Map(perDay.flat().map((g) => [g.id, g]));
+    games = [...byId.values()];
   } catch {
+    // A missing day could hide a whole slate, so any failed day means unavailable.
     return { status: "unavailable", rows: [] };
   }
   if (games.length === 0) return { status: "no-games", rows: [] };
