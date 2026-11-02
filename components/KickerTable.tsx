@@ -14,7 +14,7 @@ export function KickerTable({ title, result }: { title: string; result: KickersR
       <h2>{title}</h2>
       <div className="table-wrap" tabIndex={0} role="region" aria-label={title + " table"}>
         <table>
-          <caption>Top 3 by field goals made</caption>
+          {!message && <caption>Top 3 by field goals made</caption>}
           <thead>
             <tr>
               <th scope="col">Name</th>

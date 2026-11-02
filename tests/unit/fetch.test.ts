@@ -40,6 +40,18 @@ describe("getTopKickers", () => {
     expect(await getTopKickers("nfl", week)).toEqual({ status: "unavailable", rows: [] });
   });
 
+  it("reports unavailable when every summary fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) =>
+        url.includes("scoreboard")
+          ? ok(load("scoreboard.json"))
+          : Promise.resolve(new Response("no", { status: 500 })),
+      ),
+    );
+    expect(await getTopKickers("nfl", week)).toEqual({ status: "unavailable", rows: [] });
+  });
+
   it("skips a single failed summary", async () => {
     vi.stubGlobal(
       "fetch",

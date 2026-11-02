@@ -35,6 +35,7 @@ export async function getTopKickers(league: League, week: Week): Promise<Kickers
 
   const lines: GameKicking[] = [];
   let next = 0;
+  let succeeded = 0;
   async function worker() {
     while (next < games.length) {
       const game = games[next++];
@@ -43,12 +44,16 @@ export async function getTopKickers(league: League, week: Week): Promise<Kickers
           BASE + "/" + sport + "/summary?event=" + encodeURIComponent(game.id),
         );
         lines.push(...parseKicking(summary));
+        succeeded++;
       } catch {
         // Skip a game whose summary failed.
       }
     }
   }
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, games.length) }, worker));
+
+  // Every summary failing means an outage, not a week without field goals.
+  if (succeeded === 0) return { status: "unavailable", rows: [] };
 
   return { status: "ok", rows: topKickers(aggregateKickers(lines), 3) };
 }
