@@ -57,7 +57,7 @@ jobs:
             echo "result=skipped (Supabase not set up)" >> "$GITHUB_OUTPUT"; exit 0
           fi
           supabase link --project-ref "$SUPABASE_PROJECT_REF"
-          supabase db push
+          supabase db push --remote
           echo "result=migrations applied to staging" >> "$GITHUB_OUTPUT"
 
       # Remote build on Vercel: the app is built on Vercel's servers, so
