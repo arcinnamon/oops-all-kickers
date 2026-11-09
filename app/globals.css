@@ -96,3 +96,9 @@ caption {
   text-align: left;
   padding: 0.25rem 0;
 }
+
+.db-status {
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}

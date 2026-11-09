@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { DbStatus } from "@/components/DbStatus";
 import { KickerTable } from "@/components/KickerTable";
 import { getTopKickers } from "@/lib/kickers/fetch";
 import { lastCompletedWeek } from "@/lib/week";
@@ -13,6 +15,15 @@ export default async function Home() {
       <p className="week-label">Week of {week.label}</p>
       <KickerTable title="NFL kickers" result={nfl} />
       <KickerTable title="FBS kickers" result={fbs} />
+      <Suspense
+        fallback={
+          <footer className="db-status">
+            <p>Database: checking</p>
+          </footer>
+        }
+      >
+        <DbStatus />
+      </Suspense>
     </main>
   );
 }
