@@ -70,7 +70,7 @@ jobs:
         run: |
           if [ -z "${SUPABASE_PROJECT_REF}" ]; then echo "Supabase not set up; skipping."; exit 0; fi
           supabase link --project-ref "$SUPABASE_PROJECT_REF"
-          supabase db push
+          supabase db push --remote
 
       - name: Deploy to production
         id: vercel
