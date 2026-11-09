@@ -11,3 +11,9 @@ test("home page shows NFL and FBS kicker tables", async ({ page }) => {
     await expect(page.getByRole("columnheader", { name: header, exact: true })).toHaveCount(2);
   }
 });
+
+test("home page shows the database status line and keeps the tables", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText(/Database: (connected, time|unreachable)/)).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "NFL kickers" })).toBeVisible();
+});
