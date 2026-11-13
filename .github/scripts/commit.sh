@@ -10,7 +10,7 @@ git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
 mkdir -p .pipeline/out
 reverted=""
-for p in .github .claude CLAUDE.md; do
+for p in .github .claude CLAUDE.md AGENTS.md; do
   changed=""
   git diff --quiet "origin/${DEFAULT_BRANCH}" -- "$p" 2>/dev/null || changed=1
   [ -n "$(git ls-files --others --exclude-standard -- "$p")" ] && changed=1
