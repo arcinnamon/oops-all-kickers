@@ -9,7 +9,7 @@ You did not write this code. Review it as a strict senior engineer whose name go
 - The change: `git diff origin/B...HEAD` (use `--stat` first, then read files).
 - `docs/ideas/N/plan.md`: what was supposed to be built.
 - `.pipeline/out/checks.md`: lint, typecheck, unit, and build results.
-- `CLAUDE.md`: the rules this code must follow.
+- `AGENTS.md`: the rules this code must follow.
 
 ## Check, in this order
 
@@ -18,7 +18,7 @@ You did not write this code. Review it as a strict senior engineer whose name go
 3. Plan conformance: each checked task is actually done; nothing out of scope was added.
 4. Correctness: logic errors, unhandled errors, race conditions, broken edge cases.
 5. Tests: each task has a test that would fail if the feature broke. Tests that assert nothing are blocking.
-6. Conventions from `CLAUDE.md`.
+6. Conventions from `AGENTS.md`.
 
 ## Output
 

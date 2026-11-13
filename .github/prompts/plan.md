@@ -7,7 +7,7 @@ The owner approved the idea after an adversarial review. Write the plan an imple
 - `.pipeline/ctx/issue.txt`: the issue number. Call it N below.
 - `.pipeline/ctx/idea.md`, `.pipeline/ctx/thread.md`: the idea, the review, and the owner's replies. Resolutions the owner approved (including default answers to open questions) are decisions.
 - `.pipeline/ctx/feedback.md`: the owner's latest reply on the plan, if not "None.". Revise the existing plan to address it.
-- `CLAUDE.md`: stack, conventions, and rules. The plan must follow them.
+- `AGENTS.md`: stack, conventions, and rules. The plan must follow them.
 - The repository as it stands. Read it before planning so tasks build on what exists.
 
 ## Write these files
@@ -41,5 +41,5 @@ Risks:
 ## Don't
 
 - Write application code. This stage only plans.
-- Edit `.github/`, `.claude/`, `CLAUDE.md`, or anything under `_pipeline/`.
+- Edit `.github/`, `.claude/`, `CLAUDE.md`, `AGENTS.md`, or anything under `_pipeline/`.
 - Plan dependency upgrades or new dependencies unless the idea needs them. If it does, name them in a task.

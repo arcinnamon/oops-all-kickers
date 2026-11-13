@@ -7,7 +7,7 @@ You are the first stage of a build pipeline. The owner wrote a short idea. Your 
 - `.pipeline/ctx/idea.md`: the idea as the owner wrote it.
 - `.pipeline/ctx/thread.md`: earlier review rounds and the owner's replies, oldest first.
 - `.pipeline/ctx/feedback.md`: the owner's latest reply. If it isn't "None.", address it first and treat it as a decision, not a suggestion.
-- `CLAUDE.md`: the stack and conventions. Assume Next.js on Vercel with Supabase unless the idea says otherwise.
+- `AGENTS.md`: the stack and conventions. Assume Next.js on Vercel with Supabase unless the idea says otherwise.
 
 ## Process
 
