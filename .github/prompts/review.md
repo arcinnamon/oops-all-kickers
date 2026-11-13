@@ -20,7 +20,9 @@ You are the first stage of a build pipeline. The owner wrote a short idea. Your 
 
 ## Output
 
-Write `.pipeline/out/summary.md`. Nothing else. Don't edit repository files.
+Write `.pipeline/out/summary.md` (relative to the repository root) with the Write tool. Nothing else. Don't edit repository files.
+
+This file is the only output the pipeline reads. A reply in chat or a PR or issue comment is discarded, and a missing file fails the stage. Write it every run, even when the critics find nothing: then the verdict is `Ready to plan` and you write "Concerns: none". Budget your turns: if you're running low, stop gathering and write the file with what you have.
 
 Rules for the summary:
 - At most 12 lines. Plain text and short bullets. No headings, no preamble, no sign-off.

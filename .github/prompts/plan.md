@@ -38,6 +38,8 @@ Risks:
 - <risk>
 ```
 
+Write both `.pipeline/out/` files (paths relative to the repository root) with the Write tool. They are the only output the pipeline reads. A reply in chat or a PR or issue comment is discarded, and a missing `summary.md` fails the stage. Budget your turns: write `plan.md` and both output files before you run out, even if the plan is rougher than you'd like.
+
 ## Don't
 
 - Write application code. This stage only plans.
