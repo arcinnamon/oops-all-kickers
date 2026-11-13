@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const PAGE_SIZE = 25;
 
-export type PoolRow = { league: "nfl" | "fbs"; name: string; team: string };
+export type PoolRow = { id: number; league: "nfl" | "fbs"; name: string; team: string };
 export type PoolResult =
   | { status: "ok"; rows: PoolRow[]; page: number; totalPages: number; asOf: string | null }
   | { status: "unavailable" };
@@ -20,7 +20,7 @@ export async function getKickerPool(page: number): Promise<PoolResult> {
     const fetchPage = (p: number) =>
       supabase
         .from("kickers")
-        .select("league, name, team", { count: "exact" })
+        .select("id, league, name, team", { count: "exact" })
         .order("league")
         .order("team")
         .order("name")
@@ -28,13 +28,17 @@ export async function getKickerPool(page: number): Promise<PoolResult> {
 
     let current = Math.max(1, page);
     let res = await fetchPage(current);
+    // A page past the end makes PostgREST answer 416; retry page 1 to learn the count.
+    const retried = !!res.error && current > 1;
+    if (retried) res = await fetchPage(1);
     if (res.error || !res.count) return { status: "unavailable" };
     const totalPages = Math.ceil(res.count / PAGE_SIZE);
-    if (current > totalPages) {
-      current = totalPages;
+    if (retried || current > totalPages) {
+      current = Math.min(current, totalPages);
       res = await fetchPage(current);
       if (res.error) return { status: "unavailable" };
     }
+    if (!res.data?.length) return { status: "unavailable" };
 
     const latest = await supabase
       .from("kickers")

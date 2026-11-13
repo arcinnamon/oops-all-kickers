@@ -9,7 +9,7 @@ import { KickerPool } from "@/components/KickerPool";
 
 const ok = (page: number) => ({
   status: "ok",
-  rows: [{ league: "nfl", name: "Justin Tucker", team: "Baltimore Ravens" }],
+  rows: [{ id: 1, league: "nfl", name: "Justin Tucker", team: "Baltimore Ravens" }],
   page,
   totalPages: 3,
   asOf: "2026-11-13T12:00:00Z",

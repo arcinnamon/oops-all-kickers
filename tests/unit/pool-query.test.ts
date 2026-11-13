@@ -23,7 +23,7 @@ function builder(resolve: () => Resp) {
 
 beforeEach(() => {
   [order, range, limit, select, createClient].forEach((m) => m.mockReset());
-  pageResp = { data: [{ league: "nfl", name: "A", team: "T" }], error: null, count: 60 };
+  pageResp = { data: [{ id: 1, league: "nfl", name: "A", team: "T" }], error: null, count: 60 };
   latestResp = { data: [{ updated_at: "2026-11-13T12:00:00Z" }], error: null };
   select.mockImplementation((cols: string) => builder(() => (cols === "updated_at" ? latestResp : pageResp)));
   createClient.mockResolvedValue({ from: () => ({ select }) });
@@ -34,7 +34,7 @@ describe("getKickerPool", () => {
     const r = await getKickerPool(1);
     expect(order.mock.calls.slice(0, 3)).toEqual([["league"], ["team"], ["name"]]);
     expect(range).toHaveBeenCalledWith(0, 24);
-    expect(select).toHaveBeenCalledWith("league, name, team", { count: "exact" });
+    expect(select).toHaveBeenCalledWith("id, league, name, team", { count: "exact" });
     expect(r).toMatchObject({ status: "ok", page: 1, totalPages: 3, asOf: "2026-11-13T12:00:00Z" });
   });
 
@@ -47,6 +47,34 @@ describe("getKickerPool", () => {
     const r = await getKickerPool(999);
     expect(range).toHaveBeenLastCalledWith(50, 74);
     expect(r).toMatchObject({ status: "ok", page: 3 });
+  });
+
+  it("clamps when the out-of-range request errors and page 1 succeeds", async () => {
+    const good = pageResp;
+    const bad: Resp = { data: null, error: { code: "416" }, count: null };
+    let calls = 0;
+    select.mockImplementation((cols: string) =>
+      builder(() => (cols === "updated_at" ? latestResp : ++calls === 1 ? bad : good)),
+    );
+    const r = await getKickerPool(999);
+    expect(range).toHaveBeenNthCalledWith(2, 0, 24);
+    expect(range).toHaveBeenLastCalledWith(50, 74);
+    expect(r).toMatchObject({ status: "ok", page: 3 });
+  });
+
+  it("is unavailable when the retry also errors", async () => {
+    pageResp = { data: null, error: { message: "boom" }, count: null };
+    expect(await getKickerPool(999)).toEqual({ status: "unavailable" });
+  });
+
+  it("is unavailable when the clamped page has no rows", async () => {
+    let calls = 0;
+    select.mockImplementation((cols: string) =>
+      builder(() =>
+        cols === "updated_at" ? latestResp : ++calls < 2 ? pageResp : { data: [], error: null, count: 60 },
+      ),
+    );
+    expect(await getKickerPool(999)).toEqual({ status: "unavailable" });
   });
 
   it("is unavailable on a query error", async () => {

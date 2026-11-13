@@ -29,7 +29,7 @@ export async function KickerPool({ page }: { page: number }) {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.league + "-" + r.team + "-" + r.name}>
+              <tr key={r.id}>
                 <td>{r.league.toUpperCase()}</td>
                 <td>{r.name}</td>
                 <td>{r.team}</td>
