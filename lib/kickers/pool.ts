@@ -21,6 +21,7 @@ export async function getKickerPool(page: number): Promise<PoolResult> {
       supabase
         .from("kickers")
         .select("id, league, name, team", { count: "exact" })
+        .eq("active", true)
         .order("league")
         .order("team")
         .order("name")
@@ -43,6 +44,7 @@ export async function getKickerPool(page: number): Promise<PoolResult> {
     const latest = await supabase
       .from("kickers")
       .select("updated_at")
+      .eq("active", true)
       .order("updated_at", { ascending: false })
       .limit(1);
     const asOf = latest.error ? null : (latest.data?.[0]?.updated_at ?? null);

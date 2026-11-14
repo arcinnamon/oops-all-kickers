@@ -21,3 +21,30 @@ describe("kickers seed migration", () => {
     expect(sql.toLowerCase()).toContain("on conflict (league, espn_id) do update");
   });
 });
+
+describe("newest roster migration", () => {
+  const file = readdirSync("supabase/migrations")
+    .filter((f) => f.endsWith("_roster_refresh.sql"))
+    .sort()
+    .at(-1);
+  const sql = file ? readFileSync(`supabase/migrations/${file}`, "utf8") : "";
+  const rows = [...sql.matchAll(/^\s*\('([^']*)',\s*'([^']*)',\s*'([^']*)',\s*'([^']*)',\s*true\)/gm)];
+
+  it("has rows with league, espn_id, name and team", () => {
+    expect(file).toBeDefined();
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) for (const i of [1, 2, 3, 4]) expect(r[i]).not.toBe("");
+  });
+
+  it("upserts, sets active and never deletes", () => {
+    const l = sql.toLowerCase();
+    expect(l).toContain("on conflict (league, espn_id) do update");
+    expect(l).toContain("active");
+    expect(l).not.toMatch(/\bdelete\b/);
+  });
+
+  it("deactivates the placeholder FBS rows", () => {
+    expect(sql).toContain("set active = false");
+    expect(sql).toContain("4429013");
+  });
+});

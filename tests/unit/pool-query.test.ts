@@ -6,6 +6,7 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: () => createClient() }))
 import { getKickerPool } from "@/lib/kickers/pool";
 
 type Resp = { data: unknown; error: unknown; count?: number | null };
+const eq = vi.fn();
 const order = vi.fn();
 const range = vi.fn();
 const limit = vi.fn();
@@ -15,6 +16,7 @@ let latestResp: Resp;
 
 function builder(resolve: () => Resp) {
   const b: Record<string, unknown> = {};
+  b.eq = (...a: unknown[]) => (eq(...a), b);
   b.order = (...a: unknown[]) => (order(...a), b);
   b.range = (...a: unknown[]) => (range(...a), Promise.resolve(resolve()));
   b.limit = (...a: unknown[]) => (limit(...a), Promise.resolve(resolve()));
@@ -22,7 +24,7 @@ function builder(resolve: () => Resp) {
 }
 
 beforeEach(() => {
-  [order, range, limit, select, createClient].forEach((m) => m.mockReset());
+  [eq, order, range, limit, select, createClient].forEach((m) => m.mockReset());
   pageResp = { data: [{ id: 1, league: "nfl", name: "A", team: "T" }], error: null, count: 60 };
   latestResp = { data: [{ updated_at: "2026-11-13T12:00:00Z" }], error: null };
   select.mockImplementation((cols: string) => builder(() => (cols === "updated_at" ? latestResp : pageResp)));
@@ -30,6 +32,12 @@ beforeEach(() => {
 });
 
 describe("getKickerPool", () => {
+  it("filters active kickers on both the page and latest queries", async () => {
+    await getKickerPool(1);
+    expect(eq).toHaveBeenCalledTimes(2);
+    expect(eq).toHaveBeenCalledWith("active", true);
+  });
+
   it("orders by league, team, name and ranges the first page", async () => {
     const r = await getKickerPool(1);
     expect(order.mock.calls.slice(0, 3)).toEqual([["league"], ["team"], ["name"]]);

@@ -27,11 +27,11 @@ Roster migration (separate, append-only): upsert the current roster on `(league,
 
 ## Tasks
 
-- [ ] T1: Migration adding `active boolean not null default true` to `kickers`. Verify: new `tests/unit/kickers-active-migration.test.ts` checks the SQL has `add column`, `active boolean not null default true`, and no policy changes or drops.
-- [ ] T2: Pool query filters `active = true` on both the page query and the latest `updated_at` query; `PoolRow` is unchanged. Verify: extend `tests/unit/pool-query.test.ts` to assert `eq("active", true)` is applied on both queries and that other behavior is unchanged.
-- [ ] T3: Roster migration upserting the current NFL and FBS kickers from ESPN rosters (position K/PK) with `active = true`, and deactivating placeholders and kickers no longer listed. If ESPN is unreachable, include what can be gathered and note the gap in the PR. Verify: extend `tests/unit/kickers-seed.test.ts` so the newest roster migration has rows with league, espn_id, name, and team, upserts on conflict, sets `active`, and has no `delete` statement.
-- [ ] T4: Confirm the pool component shows the unavailable message when the query finds no active rows. Verify: extend `tests/unit/kicker-pool-component.test.tsx` with an unavailable-result case, and `tests/unit/pool-query.test.ts` with an empty-result case.
-- [ ] T5: Run the full check suite. Verify: `bash .github/scripts/verify.sh` passes.
+- [x] T1: Migration adding `active boolean not null default true` to `kickers`. Verify: new `tests/unit/kickers-active-migration.test.ts` checks the SQL has `add column`, `active boolean not null default true`, and no policy changes or drops.
+- [x] T2: Pool query filters `active = true` on both the page query and the latest `updated_at` query; `PoolRow` is unchanged. Verify: extend `tests/unit/pool-query.test.ts` to assert `eq("active", true)` is applied on both queries and that other behavior is unchanged.
+- [x] T3: Roster migration upserting the current NFL and FBS kickers from ESPN rosters (position K/PK) with `active = true`, and deactivating placeholders and kickers no longer listed. If ESPN is unreachable, include what can be gathered and note the gap in the PR. Verify: extend `tests/unit/kickers-seed.test.ts` so the newest roster migration has rows with league, espn_id, name, and team, upserts on conflict, sets `active`, and has no `delete` statement.
+- [x] T4: Confirm the pool component shows the unavailable message when the query finds no active rows. Verify: extend `tests/unit/kicker-pool-component.test.tsx` with an unavailable-result case, and `tests/unit/pool-query.test.ts` with an empty-result case.
+- [x] T5: Run the full check suite. Verify: `bash .github/scripts/verify.sh` passes.
 
 ## Risks
 
