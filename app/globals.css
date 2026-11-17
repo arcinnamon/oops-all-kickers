@@ -97,6 +97,14 @@ caption {
   padding: 0.25rem 0;
 }
 
+.pool-pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
 .db-status {
   margin-top: 1.5rem;
   font-size: 0.875rem;
