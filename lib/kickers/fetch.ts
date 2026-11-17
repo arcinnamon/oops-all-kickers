@@ -11,7 +11,7 @@ function compact(d: Date): string {
   return d.toISOString().slice(0, 10).replaceAll("-", "");
 }
 
-async function getJson(url: string): Promise<unknown> {
+export async function getJson(url: string): Promise<unknown> {
   const res = await fetch(url, { next: { revalidate: 3600 } });
   if (!res.ok) throw new Error("ESPN responded " + res.status);
   return res.json();

@@ -1,102 +1,125 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const createClient = vi.fn();
-vi.mock("@/lib/supabase/server", () => ({ createClient: () => createClient() }));
-
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { getKickerPool } from "@/lib/kickers/pool";
 
-type Resp = { data: unknown; error: unknown; count?: number | null };
-const eq = vi.fn();
-const order = vi.fn();
-const range = vi.fn();
-const limit = vi.fn();
-const select = vi.fn();
-let pageResp: Resp;
-let latestResp: Resp;
+type Kicker = { id: string; name: string; team: string; attempts?: number };
 
-function builder(resolve: () => Resp) {
-  const b: Record<string, unknown> = {};
-  b.eq = (...a: unknown[]) => (eq(...a), b);
-  b.order = (...a: unknown[]) => (order(...a), b);
-  b.range = (...a: unknown[]) => (range(...a), Promise.resolve(resolve()));
-  b.limit = (...a: unknown[]) => (limit(...a), Promise.resolve(resolve()));
-  return b;
+function listPage(kickers: Kicker[], pages = 1) {
+  return {
+    pagination: { pages },
+    categories: [{ name: "kicking", names: ["fieldGoalsMade", "fieldGoalAttempts"] }],
+    athletes: kickers.map((k) => ({
+      athlete: { id: k.id, displayName: k.name, teamShortName: k.team },
+      categories: [{ name: "kicking", values: [0, k.attempts ?? 1] }],
+    })),
+  };
 }
 
-beforeEach(() => {
-  [eq, order, range, limit, select, createClient].forEach((m) => m.mockReset());
-  pageResp = { data: [{ id: 1, league: "nfl", name: "A", team: "T" }], error: null, count: 60 };
-  latestResp = { data: [{ updated_at: "2026-11-13T12:00:00Z" }], error: null };
-  select.mockImplementation((cols: string) => builder(() => (cols === "updated_at" ? latestResp : pageResp)));
-  createClient.mockResolvedValue({ from: () => ({ select }) });
-});
+const many = (n: number, prefix: string): Kicker[] =>
+  Array.from({ length: n }, (_, i) => ({
+    id: prefix + i,
+    name: prefix + String(i).padStart(2, "0"),
+    team: "T",
+  }));
+
+/** Stubs fetch with one list of pages per league and returns the mock. */
+function stub(nfl: unknown[], fbs: unknown[]) {
+  const f = vi.fn((url: string) => {
+    const page = Number(new URL(url).searchParams.get("page"));
+    const body = (url.includes("college-football") ? fbs : nfl)[page - 1];
+    return Promise.resolve(new Response(JSON.stringify(body)));
+  });
+  vi.stubGlobal("fetch", f);
+  return f;
+}
+const urls = (f: ReturnType<typeof stub>, part: string) =>
+  f.mock.calls.map((c) => String(c[0])).filter((u) => u.includes(part));
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("getKickerPool", () => {
-  it("filters active kickers on both the page and latest queries", async () => {
-    await getKickerPool(1);
-    expect(eq).toHaveBeenCalledTimes(2);
-    expect(eq).toHaveBeenCalledWith("active", true);
+  it("sorts by league, team, name", async () => {
+    stub(
+      [listPage([{ id: "1", name: "Zed", team: "MIN" }, { id: "2", name: "Abe", team: "MIN" }, { id: "3", name: "Cy", team: "BAL" }])],
+      [listPage([{ id: "9", name: "Moe", team: "UAB" }])],
+    );
+    expect(await getKickerPool(1)).toEqual({
+      status: "ok",
+      page: 1,
+      totalPages: 1,
+      rows: [
+        { espnId: "9", league: "fbs", name: "Moe", team: "UAB" },
+        { espnId: "3", league: "nfl", name: "Cy", team: "BAL" },
+        { espnId: "2", league: "nfl", name: "Abe", team: "MIN" },
+        { espnId: "1", league: "nfl", name: "Zed", team: "MIN" },
+      ],
+    });
   });
 
-  it("orders by league, team, name and ranges the first page", async () => {
-    const r = await getKickerPool(1);
-    expect(order.mock.calls.slice(0, 3)).toEqual([["league"], ["team"], ["name"]]);
-    expect(range).toHaveBeenCalledWith(0, 24);
-    expect(select).toHaveBeenCalledWith("id, league, name, team", { count: "exact" });
-    expect(r).toMatchObject({ status: "ok", page: 1, totalPages: 3, asOf: "2026-11-13T12:00:00Z" });
-  });
-
-  it("uses the right range for a middle page", async () => {
-    await getKickerPool(2);
-    expect(range).toHaveBeenCalledWith(25, 49);
+  it("serves 25 rows per page", async () => {
+    stub([listPage(many(30, "n"))], [listPage(many(30, "f"))]);
+    const first = await getKickerPool(1);
+    const second = await getKickerPool(2);
+    expect(first).toMatchObject({ status: "ok", page: 1, totalPages: 3 });
+    if (first.status !== "ok" || second.status !== "ok") throw new Error("unavailable");
+    expect(first.rows).toHaveLength(25);
+    expect(first.rows[0].name).toBe("f00");
+    expect(second.rows[0].name).toBe("f25");
+    expect(second.rows[5].name).toBe("n00");
   });
 
   it("clamps a page past the end to the last page", async () => {
+    stub([listPage(many(30, "n"))], [listPage(many(30, "f"))]);
     const r = await getKickerPool(999);
-    expect(range).toHaveBeenLastCalledWith(50, 74);
     expect(r).toMatchObject({ status: "ok", page: 3 });
+    if (r.status !== "ok") throw new Error("unavailable");
+    expect(r.rows).toHaveLength(10);
   });
 
-  it("clamps when the out-of-range request errors and page 1 succeeds", async () => {
-    const good = pageResp;
-    const bad: Resp = { data: null, error: { code: "416" }, count: null };
-    let calls = 0;
-    select.mockImplementation((cols: string) =>
-      builder(() => (cols === "updated_at" ? latestResp : ++calls === 1 ? bad : good)),
+  it("stops paging NFL at the first kicker without an attempt", async () => {
+    const f = stub(
+      [listPage([{ id: "1", name: "A", team: "T" }, { id: "2", name: "B", team: "T", attempts: 0 }], 40)],
+      [listPage([])],
     );
-    const r = await getKickerPool(999);
-    expect(range).toHaveBeenNthCalledWith(2, 0, 24);
-    expect(range).toHaveBeenLastCalledWith(50, 74);
-    expect(r).toMatchObject({ status: "ok", page: 3 });
+    const r = await getKickerPool(1);
+    expect(urls(f, "/nfl/")).toHaveLength(1);
+    expect(r).toMatchObject({ rows: [{ espnId: "1", league: "nfl", name: "A", team: "T" }] });
   });
 
-  it("is unavailable when the retry also errors", async () => {
-    pageResp = { data: null, error: { message: "boom" }, count: null };
-    expect(await getKickerPool(999)).toEqual({ status: "unavailable" });
+  it("keeps paging NFL while every kicker has an attempt", async () => {
+    const f = stub([listPage(many(2, "a"), 2), listPage(many(2, "b"), 2)], [listPage([])]);
+    const r = await getKickerPool(1);
+    expect(urls(f, "/nfl/")).toHaveLength(2);
+    expect(r).toMatchObject({ rows: [{ name: "a00" }, { name: "a01" }, { name: "b00" }, { name: "b01" }] });
   });
 
-  it("is unavailable when the clamped page has no rows", async () => {
-    let calls = 0;
-    select.mockImplementation((cols: string) =>
-      builder(() =>
-        cols === "updated_at" ? latestResp : ++calls < 2 ? pageResp : { data: [], error: null, count: 60 },
+  it("reads every FBS page, attempts or not", async () => {
+    const f = stub(
+      [listPage([])],
+      [listPage([{ id: "1", name: "A", team: "T", attempts: 0 }], 2), listPage([{ id: "2", name: "B", team: "T" }], 2)],
+    );
+    const r = await getKickerPool(1);
+    expect(urls(f, "college-football")).toHaveLength(2);
+    expect(urls(f, "college-football")[0]).toContain("isqualified=true");
+    expect(urls(f, "/nfl/")[0]).toContain("isqualified=false");
+    expect(r).toMatchObject({ rows: [{ name: "A" }, { name: "B" }] });
+  });
+
+  it("is unavailable when a request fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) =>
+        Promise.resolve(
+          url.includes("college-football")
+            ? new Response("no", { status: 500 })
+            : new Response(JSON.stringify(listPage(many(2, "n")))),
+        ),
       ),
     );
-    expect(await getKickerPool(999)).toEqual({ status: "unavailable" });
-  });
-
-  it("is unavailable on a query error", async () => {
-    pageResp = { data: null, error: { message: "boom" }, count: null };
     expect(await getKickerPool(1)).toEqual({ status: "unavailable" });
   });
 
-  it("is unavailable when client creation throws", async () => {
-    createClient.mockRejectedValue(new Error("missing env"));
-    expect(await getKickerPool(1)).toEqual({ status: "unavailable" });
-  });
-
-  it("is unavailable when the table is empty", async () => {
-    pageResp = { data: [], error: null, count: 0 };
+  it("is unavailable when ESPN lists no kickers", async () => {
+    stub([listPage([])], [listPage([])]);
     expect(await getKickerPool(1)).toEqual({ status: "unavailable" });
   });
 });

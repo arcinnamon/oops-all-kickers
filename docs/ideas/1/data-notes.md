@@ -8,6 +8,7 @@ on staging before trusting it.
 
 - Scoreboard: `https://site.api.espn.com/apis/site/v2/sports/football/{nfl|college-football}/scoreboard?dates=YYYYMMDD-YYYYMMDD&limit=300` (FBS adds `groups=80`).
 - Game summary: `.../summary?event=ID`, read from `boxscore.players[].statistics[]` where `name` is `kicking`.
+- Season kicking leaderboard (kicker pool): `https://site.web.api.espn.com/apis/common/v3/sports/football/{nfl|college-football}/statistics/byathlete?seasontype=2&limit=50&page=N`. Read on page load and cached for an hour; nothing is stored. NFL uses `isqualified=false` sorted by attempts (the qualified list drops real starters). FBS uses `isqualified=true`, about 3 pages. The list returns FBS kicking stats blank, so the pool shows names and teams only.
 
 ## What we get
 

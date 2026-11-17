@@ -64,3 +64,41 @@ export function parseKicking(summary: unknown): GameKicking[] {
   }
   return out;
 }
+
+export type LeaderboardKicker = { espnId: string; name: string; team: string };
+
+/**
+ * One page of the season kicking leaderboard. With attemptedOnly, athletes
+ * without a field goal attempt are dropped and reported in sawZeroAttempts.
+ */
+export function parseLeaderboard(
+  json: unknown,
+  attemptedOnly: boolean,
+): { kickers: LeaderboardKicker[]; pages: number; sawZeroAttempts: boolean } {
+  const kickers: LeaderboardKicker[] = [];
+  if (!isObj(json)) return { kickers, pages: 1, sawZeroAttempts: false };
+  const pages = isObj(json.pagination) && Number.isInteger(json.pagination.pages)
+    ? (json.pagination.pages as number)
+    : 1;
+  const isKicking = (c: unknown): c is Json => isObj(c) && c.name === "kicking";
+  const attemptsIdx = arr(arr(json.categories).find(isKicking)?.names).indexOf("fieldGoalAttempts");
+  let sawZeroAttempts = false;
+  for (const a of arr(json.athletes)) {
+    if (!isObj(a) || !isObj(a.athlete)) continue;
+    const { id, displayName, teamShortName } = a.athlete;
+    if ((typeof id !== "string" && typeof id !== "number") || typeof displayName !== "string") continue;
+    if (attemptedOnly) {
+      const attempts = arr(arr(a.categories).find(isKicking)?.values)[attemptsIdx];
+      if (typeof attempts !== "number" || attempts <= 0) {
+        sawZeroAttempts = true;
+        continue;
+      }
+    }
+    kickers.push({
+      espnId: String(id),
+      name: displayName,
+      team: typeof teamShortName === "string" ? teamShortName : "",
+    });
+  }
+  return { kickers, pages, sawZeroAttempts };
+}

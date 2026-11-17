@@ -13,13 +13,13 @@ export async function KickerPool({ page }: { page: number }) {
       </section>
     );
   }
-  const { rows, page: current, totalPages, asOf } = result;
+  const { rows, page: current, totalPages } = result;
   return (
     <section>
       <h2>Kicker pool</h2>
       <div className="table-wrap" tabIndex={0} role="region" aria-label="Kicker pool table">
         <table>
-          <caption>{asOf ? `Roster as of ${asOf.slice(0, 10)}` : "All kickers"}</caption>
+          <caption>Kickers with stats this season</caption>
           <thead>
             <tr>
               <th scope="col">League</th>
@@ -29,7 +29,7 @@ export async function KickerPool({ page }: { page: number }) {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id}>
+              <tr key={r.league + r.espnId}>
                 <td>{r.league.toUpperCase()}</td>
                 <td>{r.name}</td>
                 <td>{r.team}</td>

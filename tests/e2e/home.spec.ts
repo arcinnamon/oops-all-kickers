@@ -6,9 +6,10 @@ test("home page shows NFL and FBS kicker tables", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Oops All Kickers" })).toBeVisible();
   for (const title of ["NFL kickers", "FBS kickers"]) {
     await expect(page.getByRole("heading", { level: 2, name: title })).toBeVisible();
-  }
-  for (const header of ["Name", "Team", "FG made", "FG attempts", "Longest"]) {
-    await expect(page.getByRole("columnheader", { name: header, exact: true })).toHaveCount(2);
+    const table = page.getByRole("region", { name: title + " table" });
+    for (const header of ["Name", "Team", "FG made", "FG attempts", "Longest"]) {
+      await expect(table.getByRole("columnheader", { name: header, exact: true })).toHaveCount(1);
+    }
   }
 });
 
@@ -19,7 +20,7 @@ test("kicker pool appears above the scoring tables", async ({ page }) => {
   const poolY = (await pool.boundingBox())!.y;
   const nflY = (await page.getByRole("heading", { level: 2, name: "NFL kickers" }).boundingBox())!.y;
   expect(poolY).toBeLessThan(nflY);
-  const table = page.getByRole("table", { name: /Roster as of|All kickers/ });
+  const table = page.getByRole("table", { name: "Kickers with stats this season" });
   if (await table.count()) {
     for (const header of ["League", "Name", "Team"]) {
       await expect(table.getByRole("columnheader", { name: header, exact: true })).toBeVisible();
