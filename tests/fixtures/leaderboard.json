@@ -1,0 +1,127 @@
+{
+  "pagination": {
+    "count": 2000,
+    "limit": 50,
+    "page": 1,
+    "pages": 40
+  },
+  "categories": [
+    {
+      "name": "kicking",
+      "names": [
+        "fieldGoalsMade",
+        "fieldGoalAttempts",
+        "fieldGoalPct",
+        "longFieldGoalMade",
+        "fieldGoalsMade1_19",
+        "fieldGoalsMade20_29",
+        "fieldGoalsMade30_39",
+        "fieldGoalsMade40_49",
+        "fieldGoalsMade50",
+        "fieldGoalAttempts1_19",
+        "fieldGoalAttempts20_29",
+        "fieldGoalAttempts30_39",
+        "fieldGoalAttempts40_49",
+        "fieldGoalAttempts50",
+        "extraPointsMade",
+        "extraPointAttempts",
+        "extraPointPct"
+      ]
+    }
+  ],
+  "athletes": [
+    {
+      "athlete": {
+        "id": "3124679",
+        "displayName": "Jason Sanders",
+        "teamShortName": "NYJ"
+      },
+      "categories": [
+        {
+          "name": "kicking",
+          "values": [
+            25.0,
+            28.0,
+            89.28600311279297,
+            54.0,
+            0.0,
+            4.0,
+            10.0,
+            7.0,
+            4.0,
+            0.0,
+            4.0,
+            10.0,
+            8.0,
+            6.0,
+            13.0,
+            14.0,
+            92.85700225830078
+          ]
+        }
+      ]
+    },
+    {
+      "athlete": {
+        "id": "4567104",
+        "displayName": "Will Reichard",
+        "teamShortName": "MIN"
+      },
+      "categories": [
+        {
+          "name": "kicking",
+          "values": [
+            23.0,
+            25.0,
+            92.0,
+            56.0,
+            0.0,
+            3.0,
+            6.0,
+            7.0,
+            7.0,
+            0.0,
+            3.0,
+            6.0,
+            7.0,
+            9.0,
+            13.0,
+            13.0,
+            100.0
+          ]
+        }
+      ]
+    },
+    {
+      "athlete": {
+        "id": "2977680",
+        "displayName": "Bradley Pinion",
+        "teamShortName": "MIA"
+      },
+      "categories": [
+        {
+          "name": "kicking",
+          "values": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  ]
+}

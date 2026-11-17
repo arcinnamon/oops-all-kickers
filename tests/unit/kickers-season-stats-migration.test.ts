@@ -6,19 +6,32 @@ describe("kickers season stats migration", () => {
     "supabase/migrations/20261116210000_kickers_season_stats.sql",
     "utf8",
   ).toLowerCase();
-  const scraper = readFileSync("scripts/scrape_kickers.py", "utf8");
+  const columns = [
+    "games_played",
+    "fg_made",
+    "fg_attempts",
+    "longest",
+    "fg_made_1_19",
+    "fg_made_20_29",
+    "fg_made_30_39",
+    "fg_made_40_49",
+    "fg_made_50_plus",
+    "fg_attempts_1_19",
+    "fg_attempts_20_29",
+    "fg_attempts_30_39",
+    "fg_attempts_40_49",
+    "fg_attempts_50_plus",
+    "xp_made",
+    "xp_attempts",
+  ];
 
-  it("adds every column the scraper writes", () => {
-    const block = scraper.slice(scraper.indexOf("COLUMNS = {"), scraper.indexOf("\n}\n"));
-    const columns = [...block.matchAll(/^\s+"(\w+)":/gm)].map((m) => m[1]);
-    expect(columns).toHaveLength(16);
+  it("adds the season and stat columns", () => {
     for (const column of ["season", ...columns]) {
       expect(sql).toContain(`add column ${column} integer`);
     }
   });
 
-  it("has a unique constraint matching the scraper's upsert key", () => {
-    expect(scraper).toContain("on_conflict=league,season,espn_id");
+  it("has a unique constraint on league, season and ESPN id", () => {
     expect(sql).toContain("unique (league, season, espn_id)");
   });
 

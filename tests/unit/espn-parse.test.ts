@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { parseKicking, parseScoreboard } from "@/lib/kickers/espn";
+import { parseKicking, parseLeaderboard, parseScoreboard } from "@/lib/kickers/espn";
 
 const load = (f: string) => JSON.parse(readFileSync("tests/fixtures/" + f, "utf8"));
 const week = {
@@ -36,5 +36,31 @@ describe("parseKicking", () => {
     expect(parseKicking({ boxscore: { players: [{ statistics: [{ name: "kicking" }] }] } })).toEqual(
       [],
     );
+  });
+});
+
+describe("parseLeaderboard", () => {
+  it("reads id, name, team and the page count", () => {
+    expect(parseLeaderboard(load("leaderboard.json"), false)).toEqual({
+      kickers: [
+        { espnId: "3124679", name: "Jason Sanders", team: "NYJ" },
+        { espnId: "4567104", name: "Will Reichard", team: "MIN" },
+        { espnId: "2977680", name: "Bradley Pinion", team: "MIA" },
+      ],
+      pages: 40,
+      sawZeroAttempts: false,
+    });
+  });
+
+  it("drops kickers without an attempt when asked", () => {
+    const res = parseLeaderboard(load("leaderboard.json"), true);
+    expect(res.kickers.map((k) => k.name)).toEqual(["Jason Sanders", "Will Reichard"]);
+    expect(res.sawZeroAttempts).toBe(true);
+  });
+
+  it("returns no kickers for malformed input", () => {
+    expect(parseLeaderboard(null, true).kickers).toEqual([]);
+    expect(parseLeaderboard({ athletes: "x" }, false).kickers).toEqual([]);
+    expect(parseLeaderboard({ athletes: [{ athlete: { id: "1", displayName: "A" } }] }, true).kickers).toEqual([]);
   });
 });

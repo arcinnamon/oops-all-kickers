@@ -9,10 +9,9 @@ import { KickerPool } from "@/components/KickerPool";
 
 const ok = (page: number) => ({
   status: "ok",
-  rows: [{ id: 1, league: "nfl", name: "Justin Tucker", team: "Baltimore Ravens" }],
+  rows: [{ espnId: "1", league: "nfl", name: "Justin Tucker", team: "BAL" }],
   page,
   totalPages: 3,
-  asOf: "2026-11-13T12:00:00Z",
 });
 
 async function render(page: number) {
@@ -23,13 +22,13 @@ async function render(page: number) {
 beforeEach(() => getKickerPool.mockReset());
 
 describe("KickerPool", () => {
-  it("renders headers, rows and the roster date", async () => {
+  it("renders headers, rows and the caption", async () => {
     const html = await render(1);
     for (const h of ["League", "Name", "Team"]) expect(html).toContain(`>${h}</th>`);
     expect(html).toContain("<h2>Kicker pool</h2>");
     expect(html).toContain("NFL");
     expect(html).toContain("Justin Tucker");
-    expect(html).toContain("Roster as of 2026-11-13");
+    expect(html).toContain("Kickers with stats this season");
     expect(html).toContain("Page 1 of 3");
   });
 
