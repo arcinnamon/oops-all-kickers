@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 LEAGUES = {"nfl": "nfl", "fbs": "college-football"}
 LIST_URL = (
     "https://site.web.api.espn.com/apis/common/v3/sports/football/{sport}"
-    "/statistics/byathlete?isqualified=true&sort=kicking.fieldGoalsMade%3Adesc"
+    "/statistics/byathlete?seasontype=2&isqualified=true&sort=kicking.fieldGoalsMade%3Adesc"
     "&limit=50&page={page}"
 )
 STATS_URL = (
