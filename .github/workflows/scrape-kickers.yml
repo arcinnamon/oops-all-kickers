@@ -1,0 +1,26 @@
+name: Scrape kickers
+
+# Refreshes the kickers table once a week, after Monday Night Football.
+on:
+  schedule:
+    - cron: "0 10 * * 2" # Tuesdays 10:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scrape-kickers
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: python3 scripts/scrape_kickers.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}

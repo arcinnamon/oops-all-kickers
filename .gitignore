@@ -16,3 +16,4 @@ coverage/
 _pipeline/
 supabase/.temp/
 supabase/.branches/
+__pycache__/
