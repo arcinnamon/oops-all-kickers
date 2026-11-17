@@ -110,7 +110,10 @@ def upsert(rows):
             "Prefer": "resolution=merge-duplicates,return=minimal",
         },
     )
-    urllib.request.urlopen(req, timeout=30).close()
+    try:
+        urllib.request.urlopen(req, timeout=30).close()
+    except urllib.error.HTTPError as e:
+        sys.exit(f"Supabase rejected the upsert ({e.code}): {e.read().decode(errors='replace')}")
 
 
 def main():
